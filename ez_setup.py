@@ -167,7 +167,7 @@ def use_setuptools(
 
     try:
         import pkg_resources
-        pkg_resources.require("setuptools>=" + version)
+        pkg_resources.require(f'setuptools>={version}')
         # a suitable version is already installed
         return
     except ImportError:
