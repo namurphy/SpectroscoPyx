@@ -309,7 +309,7 @@ class _Bootstrapper(object):
         # the case of setup_requires
         for key in list(sys.modules):
             try:
-                if key == PACKAGE_NAME or key.startswith(PACKAGE_NAME + '.'):
+                if key == PACKAGE_NAME or key.startswith(f'{PACKAGE_NAME}.'):
                     del sys.modules[key]
             except AttributeError:
                 # Sometimes mysterious non-string things can turn up in
@@ -363,8 +363,11 @@ class _Bootstrapper(object):
         with.
         """
 
-        return dict((optname, getattr(self, optname))
-                    for optname, _ in CFG_OPTIONS if hasattr(self, optname))
+        return {
+            optname: getattr(self, optname)
+            for optname, _ in CFG_OPTIONS
+            if hasattr(self, optname)
+        }
 
     def get_local_directory_dist(self):
         """
@@ -650,10 +653,7 @@ class _Bootstrapper(object):
             '^(?P<status>[+-U ])(?P<commit>[0-9a-f]{40}) '
             '(?P<submodule>\S+)( .*)?$')
 
-        # The stdout should only contain one line--the status of the
-        # requested submodule
-        m = _git_submodule_status_re.match(stdout)
-        if m:
+        if m := _git_submodule_status_re.match(stdout):
             # Yes, the path *is* a git submodule
             self._update_submodule(m.group('submodule'), m.group('status'))
             return True
@@ -797,15 +797,14 @@ def run_cmd(cmd):
         if DEBUG:
             raise
 
-        if e.errno == errno.ENOENT:
-            msg = 'Command not found: `{0}`'.format(' '.join(cmd))
-            raise _CommandNotFound(msg, cmd)
-        else:
+        if e.errno != errno.ENOENT:
             raise _AHBootstrapSystemExit(
                 'An unexpected error occurred when running the '
                 '`{0}` command:\n{1}'.format(' '.join(cmd), str(e)))
 
 
+        msg = 'Command not found: `{0}`'.format(' '.join(cmd))
+        raise _CommandNotFound(msg, cmd)
     # Can fail of the default locale is not configured properly.  See
     # https://github.com/astropy/astropy/issues/2749.  For the purposes under
     # consideration 'latin1' is an acceptable fallback.
@@ -839,10 +838,7 @@ def _next_version(version):
 
     if hasattr(version, 'base_version'):
         # New version parsing from setuptools >= 8.0
-        if version.base_version:
-            parts = version.base_version.split('.')
-        else:
-            parts = []
+        parts = version.base_version.split('.') if version.base_version else []
     else:
         parts = []
         for part in version:

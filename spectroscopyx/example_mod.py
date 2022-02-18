@@ -24,14 +24,14 @@ def primes(imax):
     while len(result) < imax:
         i = 0
         while i < k and n % p[i] != 0:
-            i = i + 1
+            i += 1
         if i == k:
             p[k] = n
-            k = k + 1
+            k += 1
             result.append(n)
             if k > 10000:
                 break
-        n = n + 1
+        n += 1
 
     return result
 
